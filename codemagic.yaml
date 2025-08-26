@@ -1,0 +1,26 @@
+workflows:
+  ios-build:
+    name: iOS Build
+    environment:
+      xcode: latest
+    scripts:
+      - name: Install dependencies
+        script: |
+          brew install cocoapods || true
+          pod install --project-directory=FoundationChat || true
+      - name: Build .ipa
+        script: |
+          xcodebuild -project FoundationChat.xcodeproj \
+            -scheme FoundationChat \
+            -sdk iphoneos \
+            -configuration Release \
+            clean archive \
+            -archivePath $CM_BUILD_DIR/ios.xcarchive \
+            CODE_SIGNING_ALLOWED=NO
+          xcodebuild -exportArchive \
+            -archivePath $CM_BUILD_DIR/ios.xcarchive \
+            -exportOptionsPlist /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/Xcode/Specifications/Generic.xcarchive/Info.plist \
+            -exportPath $CM_BUILD_DIR/ipa \
+            CODE_SIGNING_ALLOWED=NO
+    artifacts:
+      - $CM_BUILD_DIR/ipa/*.ipa
